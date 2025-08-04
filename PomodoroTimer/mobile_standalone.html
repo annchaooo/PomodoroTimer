@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🍅 Pomodoro Timer - Mobile</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Pomodoro Timer">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #F8F9FA;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .mobile-container {
+            width: 100%;
+            max-width: 480px;
+            background-color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            min-height: 90vh;
+        }
+
+        .status-bar {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #2C3E50;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .session-indicator {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .timer-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: center;
+        }
+
+        .tomato-container {
+            margin-bottom: 20px;
+        }
+
+        .tomato-svg {
+            width: 80px;
+            height: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .time-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .time-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #E74C3C;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .time-subtitle {
+            font-size: 1.1rem;
+            color: #7F8C8D;
+            margin-top: 10px;
+        }
+
+        .progress-circle {
+            width: 250px;
+            height: 250px;
+            position: relative;
+            margin: 20px 0;
+        }
+
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .control-section {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin: 20px 0;
+            gap: 10px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 15px 10px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 70px;
+            justify-content: center;
+        }
+
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .btn-text {
+            font-size: 0.9rem;
+        }
+
+        .primary-btn {
+            background-color: #27AE60;
+        }
+
+        .secondary-btn {
+            background-color: #F39C12;
+        }
+
+        .tertiary-btn {
+            background-color: #E74C3C;
+        }
+
+        .quick-actions {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 15px;
+            gap: 10px;
+        }
+
+        .quick-btn, .settings-btn {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 20px;
+            background-color: #3498DB;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .quick-btn:active, .settings-btn:active {
+            transform: scale(0.95);
+        }
+
+        .settings-btn {
+            background-color: #8E44AD;
+            max-width: 60px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #7F8C8D;
+            padding: 5px;
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            flex: 1;
+            height: 8px;
+            background: #ECF0F1;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E74C3C;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .slider-value {
+            font-weight: bold;
+            color: #E74C3C;
+            font-size: 1.1rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2C3E50;
+            padding: 10px 0;
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            border: 2px solid #E74C3C;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 12px;
+        }
+
+        input[type="checkbox"]:checked {
+            background-color: #E74C3C;
+        }
+
+        input[type="checkbox"]:checked::before {
+            content: "✓";
+            position: absolute;
+            left: 2px;
+            top: -2px;
+            font-size: 1.2rem;
+            color: white;
+            font-weight: bold;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            border-radius: 25px;
+            background-color: #27AE60;
+            color: white;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+        }
+
+        .modal-btn:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-height: 700px) {
+            .time-text {
+                font-size: 3rem;
+            }
+            .progress-circle {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="session-indicator" id="sessionIndicator">Work Session</div>
+            <div class="session-count">Sessions: <span id="sessionCount">0</span></div>
+        </div>
+
+        <!-- Main Timer Display -->
+        <div class="timer-section">
+            <!-- Tomato Visual -->
+            <div class="tomato-container">
+                <svg class="tomato-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Tomato leaves -->
+                    <g class="leaves">
+                        <path d="M85 30 Q75 20 65 25 Q70 35 80 40 Q85 35 85 30" fill="#27AE60"/>
+                        <path d="M100 25 Q90 15 80 20 Q85 30 95 35 Q100 30 100 25" fill="#2ECC71"/>
+                        <path d="M115 30 Q125 20 135 25 Q130 35 120 40 Q115 35 115 30" fill="#27AE60"/>
+                    </g>
+                    <rect x="95" y="35" width="10" height="15" fill="#8B4513" rx="2"/>
+                    <ellipse cx="100" cy="120" rx="70" ry="65" fill="#E74C3C" class="tomato-body"/>
+                    <ellipse cx="85" cy="100" rx="15" ry="20" fill="#EC7063" opacity="0.7"/>
+                    <path d="M100 55 Q80 80 70 120 Q80 150 100 180 Q120 150 130 120 Q120 80 100 55" 
+                          fill="none" stroke="#C0392B" stroke-width="1" opacity="0.3"/>
+                    <path d="M100 55 Q110 90 100 120 Q90 90 100 55" 
+                          fill="none" stroke="#C0392B" stroke-width="1" opacity="0.3"/>
+                </svg>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="time-display">
+                <div class="time-text" id="timeDisplay">25:00</div>
+                <div class="time-subtitle">minutes remaining</div>
+            </div>
+
+            <!-- Progress Circle -->
+            <div class="progress-circle">
+                <svg class="progress-ring" width="250" height="250">
+                    <circle class="progress-ring-circle-bg" 
+                            cx="125" cy="125" r="100" 
+                            fill="transparent" 
+                            stroke="#ECF0F1" 
+                            stroke-width="6"/>
+                    <circle class="progress-ring-circle" 
+                            id="progressCircle"
+                            cx="125" cy="125" r="100" 
+                            fill="transparent" 
+                            stroke="#E74C3C" 
+                            stroke-width="6"
+                            stroke-linecap="round"
+                            stroke-dasharray="628"
+                            stroke-dashoffset="628"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="control-section">
+            <button class="control-btn primary-btn" id="startBtn">
+                <span class="btn-icon">▶️</span>
+                <span class="btn-text">Start</span>
+            </button>
+            <button class="control-btn secondary-btn" id="pauseBtn" style="display: none;">
+                <span class="btn-icon">⏸️</span>
+                <span class="btn-text">Pause</span>
+            </button>
+            <button class="control-btn tertiary-btn" id="resetBtn">
+                <span class="btn-icon">🔄</span>
+                <span class="btn-text">Reset</span>
+            </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="setQuickTime(15)">15m</button>
+            <button class="quick-btn" onclick="setQuickTime(25)">25m</button>
+            <button class="quick-btn" onclick="setQuickTime(45)">45m</button>
+            <button class="settings-btn" id="settingsBtn">⚙️</button>
+        </div>
+
+        <!-- Settings Modal -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Timer Settings</h2>
+                    <button class="close-btn" id="closeSettings">✕</button>
+                </div>
+                
+                <div class="settings-body">
+                    <div class="setting-group">
+                        <label for="workDuration">Work Duration</label>
+                        <div class="slider-container">
+                            <input type="range" id="workDuration" min="1" max="60" value="25">
+                            <span class="slider-value" id="workDurationValue">25 min</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label for="breakDuration">Break Duration</label>
+                        <div class="slider-container">
+                            <input type="range" id="breakDuration" min="1" max="30" value="5">
+                            <span class="slider-value" id="breakDurationValue">5 min</span>
+                        </div>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="autoStart" checked>
+                            Auto-start next session
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="vibration" checked>
+                            Vibration alerts
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="keepScreenOn">
+                            Keep screen on
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn save-btn" id="saveSettings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mobile Pomodoro Timer JavaScript (embedded)
+        class MobilePomodoroTimer {
+            constructor() {
+                this.workDuration = 25;
+                this.breakDuration = 5;
+                this.currentTime = this.workDuration * 60;
+                this.totalTime = this.workDuration * 60;
+                this.isRunning = false;
+                this.isWorkSession = true;
+                this.sessionsCompleted = 0;
+                this.autoStart = true;
+                this.vibration = true;
+                this.keepScreenOn = false;
+                this.timer = null;
+                this.wakeLock = null;
+                
+                this.initializeElements();
+                this.loadSettings();
+                this.setupEventListeners();
+                this.updateDisplay();
+            }
+
+            initializeElements() {
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.sessionIndicator = document.getElementById('sessionIndicator');
+                this.progressCircle = document.getElementById('progressCircle');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.settingsBtn = document.getElementById('settingsBtn');
+                this.sessionCount = document.getElementById('sessionCount');
+                this.settingsModal = document.getElementById('settingsModal');
+                this.workDurationSlider = document.getElementById('workDuration');
+                this.breakDurationSlider = document.getElementById('breakDuration');
+                this.workDurationValue = document.getElementById('workDurationValue');
+                this.breakDurationValue = document.getElementById('breakDurationValue');
+                this.autoStartCheckbox = document.getElementById('autoStart');
+                this.vibrationCheckbox = document.getElementById('vibration');
+                this.keepScreenOnCheckbox = document.getElementById('keepScreenOn');
+                this.saveSettingsBtn = document.getElementById('saveSettings');
+                this.closeSettingsBtn = document.getElementById('closeSettings');
+                this.tomatoBody = document.querySelector('.tomato-body');
+            }
+
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.settingsBtn.addEventListener('click', () => this.openSettings());
+                this.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+                this.closeSettingsBtn.addEventListener('click', () => this.closeSettings());
+                
+                this.workDurationSlider.addEventListener('input', (e) => {
+                    this.workDurationValue.textContent = e.target.value + ' min';
+                });
+                this.breakDurationSlider.addEventListener('input', (e) => {
+                    this.breakDurationValue.textContent = e.target.value + ' min';
+                });
+
+                this.settingsModal.addEventListener('click', (e) => {
+                    if (e.target === this.settingsModal) {
+                        this.closeSettings();
+                    }
+                });
+                
+                // Double tap to start/pause
+                let lastTap = 0;
+                this.timeDisplay.addEventListener('touchend', (e) => {
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 500 && tapLength > 0) {
+                        e.preventDefault();
+                        if (this.isRunning) {
+                            this.pause();
+                        } else {
+                            this.start();
+                        }
+                    }
+                    lastTap = currentTime;
+                });
+                
+                // Haptic feedback
+                const buttons = document.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.addEventListener('touchstart', () => {
+                        if (this.vibration && navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    });
+                });
+            }
+
+            start() {
+                this.isRunning = true;
+                this.startBtn.style.display = 'none';
+                this.pauseBtn.style.display = 'block';
+                
+                this.timer = setInterval(() => {
+                    this.currentTime--;
+                    this.updateDisplay();
+                    
+                    if (this.currentTime <= 0) {
+                        this.sessionComplete();
+                    }
+                }, 1000);
+            }
+
+            pause() {
+                this.isRunning = false;
+                this.startBtn.style.display = 'block';
+                this.pauseBtn.style.display = 'none';
+                clearInterval(this.timer);
+            }
+
+            reset() {
+                this.pause();
+                this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                this.totalTime = this.currentTime;
+                this.updateDisplay();
+            }
+
+            sessionComplete() {
+                this.pause();
+                this.playNotification();
+                this.triggerVibration();
+                
+                if (this.isWorkSession) {
+                    this.sessionsCompleted++;
+                    this.sessionCount.textContent = this.sessionsCompleted;
+                }
+                
+                this.isWorkSession = !this.isWorkSession;
+                this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                this.totalTime = this.currentTime;
+                this.updateDisplay();
+                
+                if (this.autoStart) {
+                    setTimeout(() => this.start(), 2000);
+                }
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.currentTime / 60);
+                const seconds = this.currentTime % 60;
+                this.timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                this.sessionIndicator.textContent = this.isWorkSession ? 'Work Session' : 'Break Time';
+                
+                const progress = ((this.totalTime - this.currentTime) / this.totalTime);
+                const circumference = 2 * Math.PI * 100;
+                const offset = circumference - (progress * circumference);
+                this.progressCircle.style.strokeDashoffset = offset;
+                
+                const color = this.isWorkSession ? '#E74C3C' : '#27AE60';
+                if (this.tomatoBody) {
+                    this.tomatoBody.style.fill = color;
+                }
+                this.progressCircle.style.stroke = color;
+                
+                document.title = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} - ${this.isWorkSession ? 'Work' : 'Break'}`;
+            }
+
+            triggerVibration() {
+                if (this.vibration && navigator.vibrate) {
+                    navigator.vibrate([500, 100, 500, 100, 500]);
+                }
+            }
+
+            playNotification() {
+                if (Notification.permission === 'granted') {
+                    const message = this.isWorkSession ? 'Break time! Take a rest.' : 'Work time! Stay focused.';
+                    new Notification('🍅 Pomodoro Timer', {
+                        body: message,
+                        vibrate: this.vibration ? [500, 100, 500] : undefined
+                    });
+                }
+            }
+
+            openSettings() {
+                this.workDurationSlider.value = this.workDuration;
+                this.breakDurationSlider.value = this.breakDuration;
+                this.workDurationValue.textContent = this.workDuration + ' min';
+                this.breakDurationValue.textContent = this.breakDuration + ' min';
+                this.autoStartCheckbox.checked = this.autoStart;
+                this.vibrationCheckbox.checked = this.vibration;
+                this.keepScreenOnCheckbox.checked = this.keepScreenOn;
+                this.settingsModal.style.display = 'flex';
+            }
+
+            closeSettings() {
+                this.settingsModal.style.display = 'none';
+            }
+
+            saveSettings() {
+                this.workDuration = parseInt(this.workDurationSlider.value);
+                this.breakDuration = parseInt(this.breakDurationSlider.value);
+                this.autoStart = this.autoStartCheckbox.checked;
+                this.vibration = this.vibrationCheckbox.checked;
+                this.keepScreenOn = this.keepScreenOnCheckbox.checked;
+                
+                if (!this.isRunning) {
+                    this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                    this.totalTime = this.currentTime;
+                    this.updateDisplay();
+                }
+                
+                this.saveToLocalStorage();
+                this.closeSettings();
+            }
+
+            loadSettings() {
+                const saved = localStorage.getItem('pomodoroMobileSettings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    this.workDuration = settings.workDuration || 25;
+                    this.breakDuration = settings.breakDuration || 5;
+                    this.autoStart = settings.autoStart !== undefined ? settings.autoStart : true;
+                    this.vibration = settings.vibration !== undefined ? settings.vibration : true;
+                    this.keepScreenOn = settings.keepScreenOn !== undefined ? settings.keepScreenOn : false;
+                    this.sessionsCompleted = settings.sessionsCompleted || 0;
+                    
+                    this.currentTime = this.workDuration * 60;
+                    this.totalTime = this.currentTime;
+                    this.sessionCount.textContent = this.sessionsCompleted;
+                }
+                
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }
+
+            saveToLocalStorage() {
+                const settings = {
+                    workDuration: this.workDuration,
+                    breakDuration: this.breakDuration,
+                    autoStart: this.autoStart,
+                    vibration: this.vibration,
+                    keepScreenOn: this.keepScreenOn,
+                    sessionsCompleted: this.sessionsCompleted
+                };
+                localStorage.setItem('pomodoroMobileSettings', JSON.stringify(settings));
+            }
+        }
+
+        function setQuickTime(minutes) {
+            if (window.timer && !window.timer.isRunning) {
+                window.timer.workDuration = minutes;
+                window.timer.currentTime = minutes * 60;
+                window.timer.totalTime = minutes * 60;
+                window.timer.updateDisplay();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.timer = new MobilePomodoroTimer();
+        });
+    </script>
+</body>
+</html>

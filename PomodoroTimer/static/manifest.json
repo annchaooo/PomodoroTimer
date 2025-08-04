@@ -1,0 +1,33 @@
+{
+  "name": "Pomodoro Timer",
+  "short_name": "Pomodoro",
+  "description": "A beautiful Pomodoro Timer for productivity",
+  "start_url": "/mobile",
+  "display": "standalone",
+  "background_color": "#F8F9FA",
+  "theme_color": "#E74C3C",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' fill='%23F8F9FA'/><text x='96' y='120' font-size='100' text-anchor='middle' fill='%23E74C3C'>🍅</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23F8F9FA'/><text x='256' y='320' font-size='280' text-anchor='middle' fill='%23E74C3C'>🍅</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en",
+  "scope": "/",
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 390 844'><rect width='390' height='844' fill='%23F8F9FA'/><text x='195' y='422' font-size='60' text-anchor='middle' fill='%23E74C3C'>25:00</text></svg>",
+      "sizes": "390x844",
+      "type": "image/svg+xml",
+      "platform": "narrow"
+    }
+  ]
+}

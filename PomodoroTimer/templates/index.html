@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍅 Pomodoro Timer</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍅 Pomodoro Timer</h1>
+            <p class="subtitle">Focus with the Pomodoro Technique</p>
+        </header>
+
+        <main class="timer-container">
+            <!-- Tomato SVG Illustration -->
+            <div class="tomato-container">
+                <svg class="tomato-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Tomato leaves -->
+                    <g class="leaves">
+                        <path d="M85 30 Q75 20 65 25 Q70 35 80 40 Q85 35 85 30" fill="#27AE60"/>
+                        <path d="M100 25 Q90 15 80 20 Q85 30 95 35 Q100 30 100 25" fill="#2ECC71"/>
+                        <path d="M115 30 Q125 20 135 25 Q130 35 120 40 Q115 35 115 30" fill="#27AE60"/>
+                    </g>
+                    
+                    <!-- Tomato stem -->
+                    <rect x="95" y="35" width="10" height="15" fill="#8B4513" rx="2"/>
+                    
+                    <!-- Main tomato body -->
+                    <ellipse cx="100" cy="120" rx="70" ry="65" fill="#E74C3C" class="tomato-body"/>
+                    
+                    <!-- Tomato highlight -->
+                    <ellipse cx="85" cy="100" rx="15" ry="20" fill="#EC7063" opacity="0.7"/>
+                    
+                    <!-- Tomato segments -->
+                    <path d="M100 55 Q80 80 70 120 Q80 150 100 180 Q120 150 130 120 Q120 80 100 55" 
+                          fill="none" stroke="#C0392B" stroke-width="1" opacity="0.3"/>
+                    <path d="M100 55 Q110 90 100 120 Q90 90 100 55" 
+                          fill="none" stroke="#C0392B" stroke-width="1" opacity="0.3"/>
+                </svg>
+            </div>
+
+            <!-- Timer Display -->
+            <div class="timer-display">
+                <div class="time-text" id="timeDisplay">25:00</div>
+                <div class="session-type" id="sessionType">Work Session</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="controls">
+                <button class="control-btn start-btn" id="startBtn">Start</button>
+                <button class="control-btn pause-btn" id="pauseBtn" style="display: none;">Pause</button>
+                <button class="control-btn reset-btn" id="resetBtn">Reset</button>
+                <button class="control-btn settings-btn" id="settingsBtn">⚙️ Settings</button>
+            </div>
+
+            <!-- Session Counter -->
+            <div class="session-counter">
+                <span>Sessions Completed: <span id="sessionCount">0</span></span>
+            </div>
+        </main>
+
+        <!-- Settings Modal -->
+        <div class="modal" id="settingsModal">
+            <div class="modal-content">
+                <h2>Timer Settings</h2>
+                
+                <div class="setting-group">
+                    <label for="workDuration">Work Duration (minutes):</label>
+                    <input type="range" id="workDuration" min="1" max="60" value="25">
+                    <span id="workDurationValue">25 min</span>
+                </div>
+
+                <div class="setting-group">
+                    <label for="breakDuration">Break Duration (minutes):</label>
+                    <input type="range" id="breakDuration" min="1" max="30" value="5">
+                    <span id="breakDurationValue">5 min</span>
+                </div>
+
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="autoStart" checked>
+                        Auto-start next session
+                    </label>
+                </div>
+
+                <div class="modal-buttons">
+                    <button class="modal-btn save-btn" id="saveSettings">Save</button>
+                    <button class="modal-btn cancel-btn" id="cancelSettings">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification Audio -->
+        <audio id="notificationSound" preload="auto">
+            <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt4G4aAxZ+wfPZeSEHMIHO8tqJNgcZaLzs4G4aAhZ+wfPZeSEHM4HN8tqJNgcZaLvv4Ws=" type="audio/wav">
+        </audio>
+    </div>
+
+    <script src="../static/js/script.js"></script>
+</body>
+</html>

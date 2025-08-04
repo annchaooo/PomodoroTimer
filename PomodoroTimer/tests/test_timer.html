@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer Tests</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-summary {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🍅 Pomodoro Timer - Unit Tests</h1>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        
+        <div id="test-results"></div>
+        <div id="test-summary"></div>
+    </div>
+
+    <!-- Mock DOM elements for testing -->
+    <div style="display: none;">
+        <div id="timeDisplay">25:00</div>
+        <div id="sessionType">Work Session</div>
+        <div id="progressFill"></div>
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn" style="display: none;">Pause</button>
+        <button id="resetBtn">Reset</button>
+        <button id="settingsBtn">Settings</button>
+        <span id="sessionCount">0</span>
+        <div id="settingsModal" class="modal">
+            <div class="modal-content">
+                <input type="range" id="workDuration" min="1" max="60" value="25">
+                <input type="range" id="breakDuration" min="1" max="30" value="5">
+                <span id="workDurationValue">25</span>
+                <span id="breakDurationValue">5</span>
+                <input type="checkbox" id="autoStart" checked>
+                <button id="saveSettings">Save</button>
+                <button id="cancelSettings">Cancel</button>
+            </div>
+        </div>
+        <audio id="notificationSound"></audio>
+        <ellipse class="tomato-body"></ellipse>
+    </div>
+
+    <script>
+        // Mock PomodoroTimer class for testing
+        class PomodoroTimer {
+            constructor() {
+                this.workDuration = 25;
+                this.breakDuration = 5;
+                this.currentTime = this.workDuration * 60;
+                this.totalTime = this.workDuration * 60;
+                this.isRunning = false;
+                this.isWorkSession = true;
+                this.sessionsCompleted = 0;
+                this.autoStart = true;
+                this.timer = null;
+                
+                this.initializeElements();
+                this.loadSettings();
+            }
+
+            initializeElements() {
+                this.timeDisplay = document.getElementById('timeDisplay');
+                this.sessionType = document.getElementById('sessionType');
+                this.progressFill = document.getElementById('progressFill');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.settingsBtn = document.getElementById('settingsBtn');
+                this.sessionCount = document.getElementById('sessionCount');
+                this.settingsModal = document.getElementById('settingsModal');
+                this.workDurationSlider = document.getElementById('workDuration');
+                this.breakDurationSlider = document.getElementById('breakDuration');
+                this.workDurationValue = document.getElementById('workDurationValue');
+                this.breakDurationValue = document.getElementById('breakDurationValue');
+                this.autoStartCheckbox = document.getElementById('autoStart');
+                this.saveSettingsBtn = document.getElementById('saveSettings');
+                this.cancelSettingsBtn = document.getElementById('cancelSettings');
+                this.notificationSound = document.getElementById('notificationSound');
+                this.tomatoBody = document.querySelector('.tomato-body');
+            }
+
+            updateDisplay() {
+                const minutes = Math.floor(this.currentTime / 60);
+                const seconds = this.currentTime % 60;
+                this.timeDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                this.sessionType.textContent = this.isWorkSession ? 'Work Session' : 'Break Time';
+                
+                const progress = ((this.totalTime - this.currentTime) / this.totalTime) * 100;
+                this.progressFill.style.width = `${progress}%`;
+                
+                if (this.tomatoBody) {
+                    this.tomatoBody.style.fill = this.isWorkSession ? '#E74C3C' : '#27AE60';
+                }
+                
+                this.progressFill.style.backgroundColor = this.isWorkSession ? '#E74C3C' : '#27AE60';
+            }
+
+            start() {
+                this.isRunning = true;
+                this.startBtn.style.display = 'none';
+                this.pauseBtn.style.display = 'inline-block';
+            }
+
+            pause() {
+                this.isRunning = false;
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                if (this.timer) {
+                    clearInterval(this.timer);
+                }
+            }
+
+            reset() {
+                this.pause();
+                this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                this.totalTime = this.currentTime;
+                this.updateDisplay();
+            }
+
+            sessionComplete() {
+                this.pause();
+                
+                if (this.isWorkSession) {
+                    this.sessionsCompleted++;
+                    this.sessionCount.textContent = this.sessionsCompleted;
+                }
+                
+                this.isWorkSession = !this.isWorkSession;
+                this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                this.totalTime = this.currentTime;
+                this.updateDisplay();
+            }
+
+            saveSettings() {
+                this.workDuration = parseInt(this.workDurationSlider.value);
+                this.breakDuration = parseInt(this.breakDurationSlider.value);
+                this.autoStart = this.autoStartCheckbox.checked;
+                
+                if (!this.isRunning) {
+                    this.currentTime = this.isWorkSession ? this.workDuration * 60 : this.breakDuration * 60;
+                    this.totalTime = this.currentTime;
+                    this.updateDisplay();
+                }
+                
+                this.saveToLocalStorage();
+            }
+
+            loadSettings() {
+                const saved = localStorage.getItem('pomodoroSettings');
+                if (saved) {
+                    const settings = JSON.parse(saved);
+                    this.workDuration = settings.workDuration || 25;
+                    this.breakDuration = settings.breakDuration || 5;
+                    this.autoStart = settings.autoStart !== undefined ? settings.autoStart : true;
+                    this.sessionsCompleted = settings.sessionsCompleted || 0;
+                    
+                    this.currentTime = this.workDuration * 60;
+                    this.totalTime = this.currentTime;
+                    this.sessionCount.textContent = this.sessionsCompleted;
+                }
+            }
+
+            saveToLocalStorage() {
+                const settings = {
+                    workDuration: this.workDuration,
+                    breakDuration: this.breakDuration,
+                    autoStart: this.autoStart,
+                    sessionsCompleted: this.sessionsCompleted
+                };
+                localStorage.setItem('pomodoroSettings', JSON.stringify(settings));
+            }
+        }
+
+        // Test framework
+        let testResults = [];
+        let timer;
+
+        function assert(condition, message) {
+            if (condition) {
+                testResults.push({ status: 'PASS', message });
+            } else {
+                testResults.push({ status: 'FAIL', message });
+            }
+        }
+
+        function assertEqual(actual, expected, message) {
+            if (actual === expected) {
+                testResults.push({ status: 'PASS', message: `${message} - Expected: ${expected}, Got: ${actual}` });
+            } else {
+                testResults.push({ status: 'FAIL', message: `${message} - Expected: ${expected}, Got: ${actual}` });
+            }
+        }
+
+        function displayResults() {
+            const resultsDiv = document.getElementById('test-results');
+            const summaryDiv = document.getElementById('test-summary');
+            
+            resultsDiv.innerHTML = '';
+            
+            let passCount = 0;
+            let failCount = 0;
+            
+            testResults.forEach(result => {
+                const div = document.createElement('div');
+                div.className = result.status === 'PASS' ? 'test-result test-pass' : 'test-result test-fail';
+                div.textContent = `${result.status}: ${result.message}`;
+                resultsDiv.appendChild(div);
+                
+                if (result.status === 'PASS') passCount++;
+                else failCount++;
+            });
+            
+            summaryDiv.innerHTML = `
+                <div class="test-summary">
+                    <h3>Test Summary</h3>
+                    <p><strong>Total Tests:</strong> ${passCount + failCount}</p>
+                    <p><strong>Passed:</strong> ${passCount}</p>
+                    <p><strong>Failed:</strong> ${failCount}</p>
+                    <p><strong>Success Rate:</strong> ${((passCount / (passCount + failCount)) * 100).toFixed(1)}%</p>
+                </div>
+            `;
+        }
+
+        function clearResults() {
+            testResults = [];
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('test-summary').innerHTML = '';
+        }
+
+        // Test cases
+        function testTimerInitialization() {
+            timer = new PomodoroTimer();
+            
+            assertEqual(timer.workDuration, 25, 'Initial work duration should be 25 minutes');
+            assertEqual(timer.breakDuration, 5, 'Initial break duration should be 5 minutes');
+            assertEqual(timer.currentTime, 1500, 'Initial current time should be 1500 seconds (25 minutes)');
+            assertEqual(timer.isRunning, false, 'Timer should not be running initially');
+            assertEqual(timer.isWorkSession, true, 'Should start with work session');
+            assertEqual(timer.sessionsCompleted, 0, 'Should start with 0 completed sessions');
+        }
+
+        function testTimerStart() {
+            timer = new PomodoroTimer();
+            timer.start();
+            
+            assertEqual(timer.isRunning, true, 'Timer should be running after start');
+            assertEqual(timer.startBtn.style.display, 'none', 'Start button should be hidden when running');
+            assertEqual(timer.pauseBtn.style.display, 'inline-block', 'Pause button should be visible when running');
+        }
+
+        function testTimerPause() {
+            timer = new PomodoroTimer();
+            timer.start();
+            timer.pause();
+            
+            assertEqual(timer.isRunning, false, 'Timer should not be running after pause');
+            assertEqual(timer.startBtn.style.display, 'inline-block', 'Start button should be visible when paused');
+            assertEqual(timer.pauseBtn.style.display, 'none', 'Pause button should be hidden when paused');
+        }
+
+        function testTimerReset() {
+            timer = new PomodoroTimer();
+            timer.currentTime = 1000; // Set to some arbitrary time
+            timer.reset();
+            
+            assertEqual(timer.currentTime, 1500, 'Current time should reset to work duration (1500 seconds)');
+            assertEqual(timer.isRunning, false, 'Timer should not be running after reset');
+        }
+
+        function testSessionComplete() {
+            timer = new PomodoroTimer();
+            const initialSessions = timer.sessionsCompleted;
+            timer.sessionComplete();
+            
+            assertEqual(timer.sessionsCompleted, initialSessions + 1, 'Sessions completed should increment after work session complete');
+            assertEqual(timer.isWorkSession, false, 'Should switch to break session after work session complete');
+            assertEqual(timer.currentTime, 300, 'Current time should be break duration (300 seconds)');
+        }
+
+        function testSettingsSave() {
+            timer = new PomodoroTimer();
+            timer.workDurationSlider.value = '30';
+            timer.breakDurationSlider.value = '10';
+            timer.autoStartCheckbox.checked = false;
+            timer.saveSettings();
+            
+            assertEqual(timer.workDuration, 30, 'Work duration should be updated to 30 minutes');
+            assertEqual(timer.breakDuration, 10, 'Break duration should be updated to 10 minutes');
+            assertEqual(timer.autoStart, false, 'Auto start should be updated to false');
+        }
+
+        function testUpdateDisplay() {
+            timer = new PomodoroTimer();
+            timer.currentTime = 1500; // 25:00
+            timer.updateDisplay();
+            
+            assertEqual(timer.timeDisplay.textContent, '25:00', 'Time display should show 25:00');
+            assertEqual(timer.sessionType.textContent, 'Work Session', 'Session type should show Work Session');
+        }
+
+        function testProgressBar() {
+            timer = new PomodoroTimer();
+            timer.currentTime = 750; // Half of 1500
+            timer.updateDisplay();
+            
+            assertEqual(timer.progressFill.style.width, '50%', 'Progress bar should be 50% when half time elapsed');
+        }
+
+        function testLocalStorage() {
+            timer = new PomodoroTimer();
+            timer.workDuration = 35;
+            timer.breakDuration = 15;
+            timer.autoStart = false;
+            timer.sessionsCompleted = 5;
+            timer.saveToLocalStorage();
+            
+            const saved = JSON.parse(localStorage.getItem('pomodoroSettings'));
+            assertEqual(saved.workDuration, 35, 'Work duration should be saved to localStorage');
+            assertEqual(saved.breakDuration, 15, 'Break duration should be saved to localStorage');
+            assertEqual(saved.autoStart, false, 'Auto start should be saved to localStorage');
+            assertEqual(saved.sessionsCompleted, 5, 'Sessions completed should be saved to localStorage');
+            
+            // Clean up
+            localStorage.removeItem('pomodoroSettings');
+        }
+
+        function runAllTests() {
+            clearResults();
+            
+            testTimerInitialization();
+            testTimerStart();
+            testTimerPause();
+            testTimerReset();
+            testSessionComplete();
+            testSettingsSave();
+            testUpdateDisplay();
+            testProgressBar();
+            testLocalStorage();
+            
+            displayResults();
+        }
+    </script>
+</body>
+</html>
